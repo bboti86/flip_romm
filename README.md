@@ -53,7 +53,7 @@ Requires an authorization token configured inside standard settings menus. The a
 ## TODO
 
 ### 🟢 High Feasibility
-* [ ] Generate a tailored application icon.
+* [x] Generate a tailored application icon.
 * [x] **Remote Metadata Viewer**: Show ratings/descriptions on game list.
 * [x] **Single game sync** capabilities.
 * [x] **Collection-Based Downloads**: Bulk download targeted playlists.
