@@ -6,6 +6,7 @@ This is a self-contained, native SpruceOS application built with PySDL2 for the 
 
 *   **Settings Management**: Store server endpoints and authorization credentials.
 *   **Targeted Syncing**: Launch automated RomM-to-favorites procedures by targeting selective playlists. 
+*   **Remote Metadata Viewer**: View rich game details (descriptions, ratings, release info) with local existence tracking.
 *   **Flexible Scanning**: Resolves relative nested structures effectively.
 *   **Device Safeguards**: Provides quick rollback recovery points.
 
@@ -20,7 +21,8 @@ This is a self-contained, native SpruceOS application built with PySDL2 for the 
 ## Security Considerations
 
 > [!CAUTION]
-> Exposing your RomM server to the public internet (e.g. via port forwarding or insecure reverse proxies) poses severe privacy risks. Ensure standard protections (Tailscale VPNs, Zero Trust Tunnels) wrap your payloads safely.
+> Exposing your RomM server to the public internet (e.g. via port forwarding or insecure reverse proxies) poses severe privacy risks. Ensure standard protections (Tailscale VPNs, Zero Trust Tunnels) wrap your payloads safely. This application is recommended for use only on closed or personal networks. The author takes no responsibility for the use or misuse of this application.  
+Keep in mind, the app will not be able to connect over a VPN or behind a reverse proxy that uses forward-auth or similar authentication. It must be able to connect directly to your RomM server.
 
 ## API Integration
 
@@ -30,7 +32,7 @@ Requires an authorization token configured inside standard settings menus.
 
 ### 🟢 High Feasibility
 * [ ] Generate a tailored application icon.
-* [ ] **Remote Metadata Viewer**: Show ratings/descriptions on game list.
+* [x] **Remote Metadata Viewer**: Show ratings/descriptions on game list.
 * [ ] **"Discovery" Mode**: Offer one-click installations of random remote titles.
 
 ### 🟡 Medium Feasibility

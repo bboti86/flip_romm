@@ -1,4 +1,5 @@
 import json
+import os
 import urllib.request
 import urllib.error
 from .config import config
@@ -80,5 +81,37 @@ class RommAPI:
         if data is not None and 'items' in data:
             return data['items']
         return []
+
+    def get_rom_details(self, rom_id):
+        """Fetch detailed metadata for a specific ROM with caching."""
+        cache_dir = "cache"
+        if not os.path.exists(cache_dir):
+            try:
+                os.makedirs(cache_dir, exist_ok=True)
+            except Exception:
+                pass
+                
+        cache_file = os.path.join(cache_dir, f"rom_{rom_id}.json")
+        if os.path.exists(cache_file):
+            try:
+                with open(cache_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception:
+                pass
+
+        if not config.romm_url or not config.romm_api_key:
+            return None
+            
+        endpoint = f"/roms/{rom_id}"
+        data = self._make_request(endpoint)
+        
+        if data:
+            try:
+                with open(cache_file, 'w', encoding='utf-8') as f:
+                    json.dump(data, f)
+            except Exception:
+                pass
+                
+        return data
 
 romm_api = RommAPI()

@@ -3,6 +3,7 @@ import sdl2.ext
 import sdl2.sdlttf
 import sdl2.sdlimage
 import os
+import ctypes
 
 _texture_cache = {}
 
@@ -61,6 +62,37 @@ def render_text_shadow(renderer, font, text, x, y, fg_color, shadow_color=(0,0,0
     render_text(renderer, font, text, x + shadow_offset, y + shadow_offset, shadow_color, center, right)
     # Draw main text
     render_text(renderer, font, text, x, y, fg_color, center, right)
+
+def get_wrapped_lines(font, text, max_width):
+    """Returns a list of lines for word wrapped text."""
+    if not text: return []
+    
+    words = str(text).split(' ')
+    lines = []
+    current_line = []
+    
+    for word in words:
+        test_line = ' '.join(current_line + [word])
+        w, h = ctypes.c_int(0), ctypes.c_int(0)
+        sdl2.sdlttf.TTF_SizeUTF8(font, test_line.encode('utf-8'), ctypes.byref(w), ctypes.byref(h))
+        
+        if w.value > max_width and current_line:
+            lines.append(' '.join(current_line))
+            current_line = [word]
+        else:
+            current_line.append(word)
+            
+    if current_line:
+        lines.append(' '.join(current_line))
+    return lines
+
+def render_text_wrapped(renderer, font, text, x, y, max_width, fg_color, line_spacing=20):
+    """Renders text with word wrapping."""
+    lines = get_wrapped_lines(font, text, max_width)
+    current_y = y
+    for line in lines:
+        render_text(renderer, font, line, x, current_y, fg_color)
+        current_y += line_spacing
 
 def draw_panel(renderer, x, y, w, h, bg_color=(20, 20, 30, 240), border_color=(60, 60, 80)):
     """Draws a premium dark panel with a subtle border."""
