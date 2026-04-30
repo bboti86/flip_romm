@@ -1,0 +1,7 @@
+{
+    "label": "RomM Sync",
+    "icon": "icon.png",
+    "launch": "launch.sh",
+    "description": "SpruceOS RomM Integration",
+    "hideInSimpleMode": false
+}

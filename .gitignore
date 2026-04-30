@@ -1,0 +1,32 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Deployment / Build
+deploy/
+build/
+dist/
+
+# Logs and Caches
+*.log
+*.log.*
+device_runtime.log
+device_runtime.log.*
+runtime.log
+
+# Secret / Settings files (DO NOT COMMIT)
+settings.json
+config.json.user
+match_cache.json
+api_cache.json
+
+# OS files
+.DS_Store
+Thumbs.db
