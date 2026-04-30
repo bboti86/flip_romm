@@ -23,10 +23,20 @@ Requires an authorization token configured inside standard settings menus.
 
 ## TODO
 
-* [ ] Generate a new, tailored application icon (currently using inverted placeholders).
-* [ ] Single game sync capabilities.
-* [ ] Device-to-RomM local uploads.
-* [ ] Bi-directional parity conflict checks.
-* [ ] True binary ROM payload transfers.
-* [ ] Saved progression mirroring.
-* [ ] Cross-compatible OnionOS deployments. 
+### 🟢 High Feasibility
+* [ ] Generate a tailored application icon.
+* [ ] **Remote Metadata Viewer**: Show ratings/descriptions on game list.
+* [ ] **Remote Scan Trigger**: Prompt server updates from controls.
+
+### 🟡 Medium Feasibility
+* [ ] **Single game sync** capabilities.
+* [ ] **Collection-Based Downloads**: Bulk download targeted playlists.
+* [ ] **Intelligent Syncing**: Download only missing ROM components.
+* [ ] **Favorite Parity**: Bi-directional favorite flag propagation.
+
+### 🔴 Low / Complex Feasibility
+* [ ] **Bi-directional Save Sync** & timestamped conflict handlers.
+* [ ] **True binary payloads** and persistent queue managers.
+* [ ] **Auto-Upload on Exit** via firmware wrapper scripts.
+* [ ] **QR-Based Pairing** for initial verification shortcuts.
+* [ ] Cross-compatible **OnionOS deployments**. 
