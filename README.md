@@ -33,10 +33,10 @@ Requires an authorization token configured inside standard settings menus.
 ### 🟢 High Feasibility
 * [ ] Generate a tailored application icon.
 * [x] **Remote Metadata Viewer**: Show ratings/descriptions on game list.
-* [ ] **"Discovery" Mode**: Offer one-click installations of random remote titles.
+* [ ] **Single game sync** capabilities.
+
 
 ### 🟡 Medium Feasibility
-* [ ] **Single game sync** capabilities.
 * [ ] **Collection-Based Downloads**: Bulk download targeted playlists.
 * [ ] **Intelligent Syncing**: Download only missing ROM components.
 * [ ] **Favorite Parity**: Bi-directional favorite flag propagation.
@@ -52,4 +52,6 @@ Requires an authorization token configured inside standard settings menus.
 * [ ] Cross-compatible **OnionOS deployments**. 
 * [ ] **Multi-User Profiles**: Simple toggle schemas handling credential swaps.
 * [ ] **Remote Scan Trigger**: Prompt server updates from controls.
+* [ ] **"Discovery" Mode**: Offer one-click installations of random remote titles.
+
 
