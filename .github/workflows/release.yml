@@ -22,7 +22,7 @@ jobs:
           [ -d libs ] && cp -r libs flip_romm/ || true
           [ -d assets ] && cp -r assets flip_romm/ || true
           
-          cp flip_romm.py launch.sh config.json icon.png settings.json.example README.md LICENSE flip_romm/ 2>/dev/null || true
+          cp flip_romm.py launch.sh config.json icon.png settings.json.example flip_romm/ 2>/dev/null || true
           echo "{}" > flip_romm/settings.json
           find flip_romm -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true
 
