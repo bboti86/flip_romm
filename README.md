@@ -27,16 +27,21 @@ Requires an authorization token configured inside standard settings menus.
 * [ ] Generate a tailored application icon.
 * [ ] **Remote Metadata Viewer**: Show ratings/descriptions on game list.
 * [ ] **Remote Scan Trigger**: Prompt server updates from controls.
+* [ ] **"Discovery" Mode**: Offer one-click installations of random remote titles.
+* [ ] **Multi-User Profiles**: Simple toggle schemas handling credential swaps.
 
 ### 🟡 Medium Feasibility
 * [ ] **Single game sync** capabilities.
 * [ ] **Collection-Based Downloads**: Bulk download targeted playlists.
 * [ ] **Intelligent Syncing**: Download only missing ROM components.
 * [ ] **Favorite Parity**: Bi-directional favorite flag propagation.
+* [ ] **Screenshot Uploader**: Push capture assets directly up to metadata logs.
+* [ ] **BIOS Integrity Check**: Confirm local hash compliance routines.
 
 ### 🔴 Low / Complex Feasibility
 * [ ] **Bi-directional Save Sync** & timestamped conflict handlers.
 * [ ] **True binary payloads** and persistent queue managers.
 * [ ] **Auto-Upload on Exit** via firmware wrapper scripts.
 * [ ] **QR-Based Pairing** for initial verification shortcuts.
+* [ ] **Playback State Sync**: Log time played counts securely.
 * [ ] Cross-compatible **OnionOS deployments**. 
