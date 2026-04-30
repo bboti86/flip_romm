@@ -1,0 +1,28 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Package Application
+        run: |
+          mkdir -p flip_romm
+          cp -r core ui libs assets flip_romm/
+          cp flip_romm.py launch.sh config.json icon.png settings.json.example README.md flip_romm/
+          find flip_romm -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true
+          zip -r flip_romm.zip flip_romm
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: flip_romm.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
