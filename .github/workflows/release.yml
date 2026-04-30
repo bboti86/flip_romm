@@ -1,28 +1,40 @@
-name: Create Release
+name: Build and Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [created]
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
-      - name: Package Application
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare Release Directory
         run: |
           mkdir -p flip_romm
-          cp -r core ui libs assets flip_romm/
-          cp flip_romm.py launch.sh config.json icon.png settings.json.example README.md flip_romm/
+          cp -r core ui flip_romm/ 2>/dev/null || true
+          [ -d libs ] && cp -r libs flip_romm/ || true
+          [ -d assets ] && cp -r assets flip_romm/ || true
+          
+          cp flip_romm.py launch.sh config.json icon.png settings.json.example README.md flip_romm/ 2>/dev/null || true
+          echo "{}" > flip_romm/settings.json
           find flip_romm -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true
-          zip -r flip_romm.zip flip_romm
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: flip_romm.zip
+      - name: Create Zip Archive
+        run: zip -r flip_romm.zip flip_romm/
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./flip_romm.zip
+          asset_name: flip_romm.zip
+          asset_content_type: application/zip
