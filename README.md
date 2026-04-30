@@ -17,6 +17,11 @@ This is a self-contained, native SpruceOS application built with PySDL2 for the 
     *   `api_key`: Your RomM API key.
 3.  Launch it via the SpruceOS App menu.
 
+## Security Considerations
+
+> [!CAUTION]
+> Exposing your RomM server to the public internet (e.g. via port forwarding or insecure reverse proxies) poses severe privacy risks. Ensure standard protections (Tailscale VPNs, Zero Trust Tunnels) wrap your payloads safely.
+
 ## API Integration
 
 Requires an authorization token configured inside standard settings menus.
