@@ -23,7 +23,7 @@ This is a self-contained, native SpruceOS application built with PySDL2 for the 
 
 ## Installation
 
-1.  Copy components into `/mnt/SDCARD/App/flip_romm/`
+1.  Unzip all files from the release zip into `/mnt/SDCARD/App/`
 2.  Fill your RomM instance details in `settings.json`.
     *   `url`: Your RomM server URL (e.g., `http://[IP_ADDRESS]`).
     *   `api_key`: Your RomM API key.
