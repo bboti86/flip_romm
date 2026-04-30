@@ -27,24 +27,19 @@ class CollectionGamesScreen:
         self.metadata_scroll_offset = 0
         self.metadata_scroll_timer = 0.3
         self.local_exists = False
+        self.selected_is_local = False
         
-        threading.Thread(target=self._fetch_games, daemon=True).start()
-
-    def _check_local_exists(self, rom):
-        if not rom: return False
+        # Downloading states
+        self.downloading = False
+        self.download_progress = 0
+        self.download_total = 0
+        self.download_status_msg = ""
+        self.show_download_confirm = False
+        self.download_error = None
+        self.download_success_msg = None
+        self.confirm_rom = None
         
-        possible_dirs = ["/mnt/SDCARD/Roms", "/media/sdcard0/Roms", "/media/sdcard1/Roms"]
-        
-        # Get the base slug from RomM
-        base_slug = self.platform_slugs.get(rom.get('platform_id', 0), '').lower()
-        if not base_slug:
-            # Fallback to platform_slug if available in the detailed meta
-            base_slug = rom.get('platform_slug', '').lower()
-            
-        if not base_slug: return False
-        
-        # SpruceOS specific mapping (same as in sync_screen.py)
-        slug_to_spruce = {
+        self.slug_to_spruce = {
             "nes": ["FC", "NES"],
             "snes": ["SFC", "SNES"],
             "gb": ["GB"],
@@ -70,8 +65,23 @@ class CollectionGamesScreen:
             "scd": ["SCD", "SEGACD"],
         }
         
+        threading.Thread(target=self._fetch_games, daemon=True).start()
+
+    def _check_local_exists(self, rom):
+        if not rom: return False
+        
+        possible_dirs = ["/mnt/SDCARD/Roms", "/media/sdcard0/Roms", "/media/sdcard1/Roms"]
+        
+        # Get the base slug from RomM
+        base_slug = self.platform_slugs.get(rom.get('platform_id', 0), '').lower()
+        if not base_slug:
+            # Fallback to platform_slug if available in the detailed meta
+            base_slug = rom.get('platform_slug', '').lower()
+            
+        if not base_slug: return False
+        
         # Folders to check on the device
-        target_folders = slug_to_spruce.get(base_slug, [base_slug.upper(), base_slug])
+        target_folders = self.slug_to_spruce.get(base_slug, [base_slug.upper(), base_slug])
         
         files_to_check = []
         if rom.get('files'):
@@ -123,6 +133,40 @@ class CollectionGamesScreen:
                         pass
         return False
 
+    def _check_local_exists(self, rom):
+        if not rom: return False
+        
+        # Optimization: use the recursive finder logic
+        _, _, path = self._get_target_paths(rom)
+        return path is not None and os.path.exists(path)
+
+    def _is_fav(self, rom):
+        """Robust favorite check against multiple variants and paths."""
+        if not rom: return False
+        
+        # 1. Check by path (most reliable)
+        _, _, target_path = self._get_target_paths(rom)
+        if target_path:
+            target_path_lower = target_path.lower()
+            for f in favorites_matcher.local_favorites:
+                f_path = f.get('rom_file_path')
+                if f_path and f_path.lower() == target_path_lower:
+                    return True
+
+        # 2. Check clean name (metadata preferred)
+        clean_name = self._get_clean_name(rom).lower().strip()
+        if clean_name in self.fav_names: return True
+        
+        # 3. Check RomM internal name variants
+        rom_name = rom.get('name', '').lower().strip()
+        if rom_name in self.fav_names: return True
+        
+        import re
+        stripped_name = re.sub(r'\s*[\(\[].*?[\)\]]', '', rom.get('name', '')).lower().strip()
+        if stripped_name in self.fav_names: return True
+        
+        return False
+
     def _fetch_metadata(self, rom):
         self.metadata_loading = True
         self.current_metadata = None
@@ -138,6 +182,143 @@ class CollectionGamesScreen:
             self.current_metadata = {"error": "Failed to load metadata"}
         finally:
             self.metadata_loading = False
+
+    def _check_free_space(self, path):
+        """Check free space in bytes at the given path."""
+        try:
+            stat = os.statvfs(path)
+            return stat.f_frsize * stat.f_bavail
+        except Exception:
+            return 0
+
+    def _get_clean_name(self, rom):
+        if not rom: return "Unknown Game"
+        # 1. Prefer IGDB/SS metadata names (best for favorites)
+        for source in ['igdb_metadata', 'ss_metadata', 'steam_metadata']:
+            meta = rom.get(source)
+            if meta and isinstance(meta, dict) and meta.get('name'):
+                return meta['name']
+        
+        # 2. Fallback to RomM name or filename
+        name = rom.get('name')
+        if not name and rom.get('files'):
+            name = rom['files'][0].get('file_name')
+        if not name:
+            name = "Unknown Game"
+            
+        # 3. Strip extensions
+        for junk in ['.zip', '.7z', '.nes', '.sfc', '.smc', '.gb', '.gbc', '.gba', '.bin', '.iso', '.md', '.gen', '.sms', '.gg']:
+            if name.lower().endswith(junk):
+                name = name[:-len(junk)]
+        
+        # 4. Strip trailing tags like (USA), (Japan), [!] etc.
+        import re
+        name = re.sub(r'\s*[\(\[].*?[\)\]]', '', name)
+        
+        return name.strip()
+
+    def _get_target_paths(self, rom):
+        base_slug = self.platform_slugs.get(rom.get('platform_id', 0), '').lower()
+        if not base_slug:
+            base_slug = rom.get('platform_slug', '').lower()
+        
+        if not base_slug:
+            return None, None, None
+
+        target_folders = self.slug_to_spruce.get(base_slug, [base_slug.upper(), base_slug])
+        target_folder = target_folders[0]
+        
+        # 1. Try to find if it already exists somewhere (recursive check)
+        filename = rom.get('fs_name')
+        if not filename and rom.get('files'):
+            filename = rom['files'][0].get('file_name')
+        if not filename:
+            filename = f"{rom.get('name', 'game')}.zip"
+            
+        filename_lower = filename.lower()
+        possible_bases = ["/media/sdcard1/Roms", "/media/sdcard0/Roms", "/mnt/SDCARD/Roms"]
+        
+        for base in possible_bases:
+            if not os.path.exists(base): continue
+            for sys_name in target_folders:
+                sys_dir = os.path.join(base, sys_name)
+                if os.path.exists(sys_dir):
+                    for root, _, files in os.walk(sys_dir):
+                        for f in files:
+                            if f.lower() == filename_lower:
+                                return base, target_folder, os.path.join(root, f)
+        
+        # 2. If not found, use default path logic
+        target_base = "/media/sdcard1/Roms"
+        if not os.path.exists(target_base):
+            target_base = "/media/sdcard0/Roms"
+        if not os.path.exists(target_base):
+            target_base = "/mnt/SDCARD/Roms"
+            
+        full_target_dir = os.path.join(target_base, target_folder)
+        target_path = os.path.join(full_target_dir, filename)
+        return target_base, target_folder, target_path
+
+    def _start_download(self, rom):
+        if self.downloading: return
+        
+        # Reset previous states
+        self.download_error = None
+        self.download_success_msg = None
+        
+        target_base, target_folder, target_path = self._get_target_paths(rom)
+        if not target_path:
+            self.download_error = "Unknown platform"
+            return
+            
+        full_target_dir = os.path.dirname(target_path)
+        os.makedirs(full_target_dir, exist_ok=True)
+        
+        # Check space
+        rom_size = rom.get('size', 0)
+        free_space = self._check_free_space(target_base)
+        
+        if rom_size > 0 and free_space < rom_size + (1024 * 1024 * 10): 
+            self.download_error = "Not enough free space on SD card"
+            return
+
+        self.downloading = True
+        self.download_progress = 0
+        self.download_total = rom_size
+        self.download_status_msg = "Starting..."
+        
+        def progress_cb(downloaded, total):
+            self.download_progress = downloaded
+            self.download_total = total
+            if total > 0:
+                self.download_status_msg = f"Downloading: {int(downloaded/total*100)}%"
+            else:
+                self.download_status_msg = f"Downloading: {downloaded/1024/1024:.1f}MB"
+            
+        def run_dl():
+            # Try to get file_name from metadata
+            file_name = None
+            if self.current_metadata and self.current_metadata.get('files'):
+                file_name = self.current_metadata['files'][0].get('file_name')
+                
+            success, msg = romm_api.download_rom(rom['id'], target_path, progress_cb, file_name=file_name)
+            if success:
+                self.download_status_msg = "Finalizing..."
+                self.local_exists = self._check_local_exists(rom)
+                
+                game_display_name = self._get_clean_name(rom)
+                favorites_matcher.add_single_favorite(game_display_name, target_folder, target_path)
+                
+                # Refresh fav names list
+                local_favs = favorites_matcher.load_local_favorites()
+                self.fav_names = set(f.get('display_name', '').lower().strip() for f in local_favs if f.get('display_name'))
+                
+                self.download_success_msg = "Game downloaded successfully!"
+            else:
+                self.download_error = f"Failed: {msg}"
+            self.downloading = False
+            
+        threading.Thread(target=run_dl, daemon=True).start()
 
     def _fetch_games(self):
         try:
@@ -163,6 +344,8 @@ class CollectionGamesScreen:
                 self.error = "Failed to fetch games for this collection."
             else:
                 self.roms = data
+                if self.roms:
+                    self.selected_is_local = self._check_local_exists(self.roms[0])
         except Exception as e:
             self.error = str(e)
         finally:
@@ -172,21 +355,53 @@ class CollectionGamesScreen:
         action = core.input.map_event(event)
         if not action: return None
         
-        if action == "CANCEL":
-            if self.show_metadata:
-                self.show_metadata = False
-                return None
-            return ("SWITCH_TO_COLLECTIONS", self.collection.get('_list_index', 0))
+        if action == "Y_BUTTON":
+            rom = self.current_metadata if self.show_metadata else self.roms[self.selected_idx]
+            is_local = self.local_exists if self.show_metadata else self.selected_is_local
             
-        if self.loading or self.error or not self.roms:
+            if rom and is_local:
+                clean_name = self._get_clean_name(rom)
+                _, folder, path = self._get_target_paths(rom)
+                if folder and path:
+                    favorites_matcher.add_single_favorite(clean_name, folder, path)
+                    # Refresh fav names list
+                    local_favs = favorites_matcher.load_local_favorites()
+                    self.fav_names = set(f.get('display_name', '').lower().strip() for f in local_favs if f.get('display_name'))
             return None
-
+        
         if self.show_metadata:
+            if self.show_download_confirm:
+                if action == "ACCEPT":
+                    self.show_download_confirm = False
+                    self._start_download(self.confirm_rom)
+                elif action == "CANCEL":
+                    self.show_download_confirm = False
+                return None
+
             if action == "UP":
                 if self.metadata_scroll_offset > 0:
                     self.metadata_scroll_offset -= 1
             elif action == "DOWN":
                 self.metadata_scroll_offset += 1
+            elif action == "X_BUTTON" and not self.local_exists and not self.downloading:
+                rom = self.current_metadata
+                if rom:
+                    # If > 5MB, show confirmation
+                    if rom.get('size', 0) > 5 * 1024 * 1024:
+                        self.show_download_confirm = True
+                        self.confirm_rom = rom
+                    else:
+                        self._start_download(rom)
+            elif action == "CANCEL":
+                self.show_metadata = False
+                self.download_error = None
+                self.download_success_msg = None
+            return None
+
+        if action == "CANCEL":
+            return ("SWITCH_TO_COLLECTIONS", self.collection.get('_list_index', 0))
+            
+        if self.loading or self.error or not self.roms:
             return None
 
         if action == "ACCEPT":
@@ -204,6 +419,7 @@ class CollectionGamesScreen:
                 self.selected_idx -= 1
                 if self.selected_idx < self.scroll_offset:
                     self.scroll_offset = self.selected_idx
+            self.selected_is_local = self._check_local_exists(self.roms[self.selected_idx])
         elif action == "DOWN":
             if self.selected_idx == len(self.roms) - 1:
                 self.selected_idx = 0
@@ -212,17 +428,19 @@ class CollectionGamesScreen:
                 self.selected_idx += 1
                 if self.selected_idx >= self.scroll_offset + self.items_per_page:
                     self.scroll_offset = self.selected_idx - self.items_per_page + 1
+            self.selected_is_local = self._check_local_exists(self.roms[self.selected_idx])
         elif action == "L_BUMPER":
             self.selected_idx = max(0, self.selected_idx - self.items_per_page)
             if self.selected_idx < self.scroll_offset:
                 self.scroll_offset = self.selected_idx
+            self.selected_is_local = self._check_local_exists(self.roms[self.selected_idx])
         elif action == "R_BUMPER":
             self.selected_idx = min(len(self.roms) - 1, self.selected_idx + self.items_per_page)
             if self.selected_idx >= self.scroll_offset + self.items_per_page:
                 self.scroll_offset = self.selected_idx - self.items_per_page + 1
+            self.selected_is_local = self._check_local_exists(self.roms[self.selected_idx])
         elif action == "START":
-            return ("SWITCH_TO_SYNC", self.collection.get('id'))
-
+            return ("SWITCH_TO_SYNC", self.collection)
         return None
 
     def update(self, dt):
@@ -291,7 +509,7 @@ class CollectionGamesScreen:
                 y_pos = y_start + (i * 40)
                 
                 rom_name = str(rom.get('name', 'Unknown'))
-                is_fav = rom_name.lower().strip() in self.fav_names
+                is_fav = self._is_fav(rom)
                 
                 bg_color = (60, 60, 100, 255) if actual_idx == self.selected_idx else (30, 30, 40, 255)
                 draw_panel(self.renderer, 40, y_pos - 5, 560, 35, bg_color=bg_color)
@@ -314,7 +532,18 @@ class CollectionGamesScreen:
                 progress = f"{self.selected_idx + 1} / {total}"
                 render_text(self.renderer, self.font, progress, 580, 40, (150, 150, 150), right=True)
 
-        footer_text = "A: Info | START: Sync | L1/R1: Page | B: Back"
+        is_local = self.local_exists if self.show_metadata else self.selected_is_local
+        fav_prompt = " | Y: Favorite" if is_local else ""
+        
+        footer_text = f"A: Info{fav_prompt} | START: Download All | B: Back"
+        if self.show_metadata:
+            if self.downloading:
+                footer_text = "Downloading... please wait"
+            elif not self.local_exists:
+                footer_text = f"X: Download{fav_prompt} | B: Close | UP/DOWN: Scroll"
+            else:
+                footer_text = f"Y: Favorite | B: Close | UP/DOWN: Scroll"
+                
         render_text(self.renderer, self.font, footer_text, 320, 440, (150, 150, 150), center=True)
 
         if self.show_metadata:
@@ -442,3 +671,38 @@ class CollectionGamesScreen:
                     render_text(self.renderer, self.font, progress, 580, y_offset + 130, (150, 150, 150), right=True)
                 
             render_text(self.renderer, self.font, "B: Close", 320, 410, (150, 150, 150), center=True)
+
+        # Draw overlays on top
+        if self.show_download_confirm:
+            overlay_h = 160
+            draw_panel(self.renderer, 100, 160, 440, overlay_h, bg_color=(40, 20, 20, 250), border_color=(255, 100, 100))
+            render_text_shadow(self.renderer, self.font, "Download Confirmation", 320, 180, (255, 100, 100), center=True)
+            
+            size_mb = self.confirm_rom.get('size', 0) / (1024 * 1024)
+            msg = f"This ROM is {size_mb:.1f}MB. Download now?"
+            render_text(self.renderer, self.font, msg, 320, 220, (255, 255, 255), center=True)
+            render_text(self.renderer, self.font, "A: Yes, Start | B: No, Abort", 320, 270, (150, 150, 150), center=True)
+
+        if self.downloading or self.download_error or self.download_success_msg:
+            overlay_h = 120
+            bg_color = (20, 40, 20, 250) if self.download_success_msg else (40, 40, 40, 250)
+            if self.download_error: bg_color = (60, 20, 20, 250)
+            
+            draw_panel(self.renderer, 120, 180, 400, overlay_h, bg_color=bg_color, border_color=(200, 200, 200))
+            
+            status_title = "Download Status"
+            if self.downloading: status_title = "Downloading..."
+            elif self.download_error: status_title = "Error"
+            elif self.download_success_msg: status_title = "Success!"
+            
+            render_text_shadow(self.renderer, self.font, status_title, 320, 200, (255, 255, 255), center=True)
+            
+            msg = self.download_status_msg
+            if self.download_error: msg = self.download_error
+            elif self.download_success_msg: msg = self.download_success_msg
+            
+            if len(msg) > 40: msg = msg[:37] + "..."
+            render_text(self.renderer, self.font, msg, 320, 240, (200, 200, 200), center=True)
+            
+            if not self.downloading:
+                render_text(self.renderer, self.font, "Press B to close", 320, 270, (150, 150, 150), center=True)

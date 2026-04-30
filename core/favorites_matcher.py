@@ -116,4 +116,24 @@ class FavoritesMatcher:
                 return False, f"Error restoring backup: {e}"
         return False, "No backup file found."
 
+    def add_single_favorite(self, display_name, system_name, rom_path):
+        """Add a single game to SpruceOS favorites."""
+        favs = self.load_local_favorites()
+        
+        # Check if already exists to avoid duplicates
+        for f in favs:
+            if f.get('rom_file_path') == rom_path:
+                return True, "Already in favorites"
+                
+        new_fav = {
+            "display_name": display_name,
+            "game_system_name": system_name,
+            "rom_file_path": rom_path
+        }
+        favs.append(new_fav)
+        if self.save_local_favorites(favs):
+            return True, "Added to favorites"
+        else:
+            return False, "Failed to save favorites"
+
 favorites_matcher = FavoritesMatcher()

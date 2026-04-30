@@ -2,6 +2,7 @@ import json
 import os
 import urllib.request
 import urllib.error
+import urllib.parse
 from .config import config
 
 class RommAPI:
@@ -11,7 +12,7 @@ class RommAPI:
     def _get_headers(self):
         return {
             "Authorization": f"Bearer {config.romm_api_key}",
-            "Accept": "application/json"
+            "Content-Type": "application/json"
         }
     
     def _make_request(self, endpoint, method="GET", data=None):
@@ -113,5 +114,54 @@ class RommAPI:
                 pass
                 
         return data
+
+    def download_rom(self, rom_id, target_path, progress_callback=None, file_name=None):
+        """Stream download a ROM from RomM."""
+        try:
+            # We NEED the file ID and file name for the v3 endpoint
+            # Even if file_name is passed, we need the file ID
+            details = self.get_rom_details(rom_id)
+            if not details or not details.get('files'):
+                return False, "No files found for this ROM"
+            
+            # Take the first file
+            rom_file = details['files'][0]
+            file_id = rom_file.get('id')
+            actual_file_name = file_name or rom_file.get('file_name')
+            
+            if not file_id or not actual_file_name:
+                return False, "File metadata missing"
+
+            # RomM v3 download endpoint: /api/roms/{file_id}/files/content/{file_name}
+            url = f"{config.romm_url.rstrip('/')}/api/roms/{file_id}/files/content/{urllib.parse.quote(actual_file_name)}"
+            headers = self._get_headers()
+            
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=30) as response:
+                total_size = int(response.headers.get('content-length', 0))
+                downloaded_size = 0
+                block_size = 1024 * 128 # 128KB blocks
+                
+                # Ensure directory exists
+                os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                
+                with open(target_path, 'wb') as f:
+                    while True:
+                        buffer = response.read(block_size)
+                        if not buffer:
+                            break
+                        f.write(buffer)
+                        downloaded_size += len(buffer)
+                        if progress_callback:
+                            progress_callback(downloaded_size, total_size)
+                return True, "Download complete"
+        except Exception as e:
+            error_msg = str(e)
+            print(f"Error downloading ROM: {error_msg}")
+            # Clean up partial file if it exists
+            if os.path.exists(target_path):
+                try: os.remove(target_path)
+                except: pass
+            return False, error_msg
 
 romm_api = RommAPI()

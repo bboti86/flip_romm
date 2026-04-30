@@ -8,6 +8,8 @@ ACCEPT = "ACCEPT"
 CANCEL = "CANCEL"
 START = "START"
 SELECT = "SELECT"
+X_BUTTON = "X_BUTTON"
+Y_BUTTON = "Y_BUTTON"
 L_BUMPER = "L_BUMPER"
 R_BUMPER = "R_BUMPER"
 PAGE_UP = "PAGE_UP"
@@ -48,6 +50,8 @@ def map_event(event):
         elif sym == sdl2.SDLK_BACKSPACE: action = SELECT
         elif sym == sdl2.SDLK_LALT: action = CANCEL
         elif sym == sdl2.SDLK_TAB: action = SELECT
+        elif sym == sdl2.SDLK_x: action = X_BUTTON
+        elif sym == sdl2.SDLK_y: action = Y_BUTTON
         elif sym == sdl2.SDLK_LEFTBRACKET: action = L_BUMPER
         elif sym == sdl2.SDLK_RIGHTBRACKET: action = R_BUMPER
         elif sym == sdl2.SDLK_PAGEUP: action = PAGE_UP
@@ -62,6 +66,8 @@ def map_event(event):
         elif btn == sdl2.SDL_CONTROLLER_BUTTON_DPAD_RIGHT: action = RIGHT
         elif btn == sdl2.SDL_CONTROLLER_BUTTON_B: action = ACCEPT   # Physical A button
         elif btn == sdl2.SDL_CONTROLLER_BUTTON_A: action = CANCEL   # Physical B button
+        elif btn == sdl2.SDL_CONTROLLER_BUTTON_X: action = Y_BUTTON # Physical Y button (Left)
+        elif btn == sdl2.SDL_CONTROLLER_BUTTON_Y: action = X_BUTTON # Physical X button (Top)
         elif btn == sdl2.SDL_CONTROLLER_BUTTON_START: action = START
         elif btn == sdl2.SDL_CONTROLLER_BUTTON_BACK: action = SELECT
         elif btn == sdl2.SDL_CONTROLLER_BUTTON_LEFTSHOULDER: action = L_BUMPER
