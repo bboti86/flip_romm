@@ -62,11 +62,10 @@ Requires an authorization token configured inside standard settings menus. The a
 * [x] **Intelligent Syncing**: Download only missing ROM components.
 * [x] **Favorite Parity**: Push local favorites back to RomM.
 * [x] **Screenshot Uploader**: Push capture assets directly up to metadata logs.
-* [ ] **BIOS Integrity Check**: Confirm local hash compliance routines.
-
 ### 🔴 Low / Complex Feasibility / Out of scope for now
+* [ ] **BIOS Integrity Check**: Confirm local hash compliance routines.
 * [ ] **Bi-directional Save Sync** & timestamped conflict handlers.
 * [ ] **True binary payloads** and persistent queue managers.
 * [ ] **Auto-Upload on Exit** via firmware wrapper scripts.
 * [ ] **Playback State Sync**: Log time played counts securely.
-* [ ] Cross-compatible **OnionOS deployments**. 
+* [ ] Cross-compatible **OnionOS deployments**.
