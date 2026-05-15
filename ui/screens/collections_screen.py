@@ -74,6 +74,10 @@ class CollectionsScreen:
                 selected = dict(self.collections[self.selected_idx])
                 selected['_list_index'] = self.selected_idx
                 return ("SWITCH_TO_COLLECTION_GAMES", selected)
+        elif action == "X_BUTTON":
+            if self.collections:
+                selected = dict(self.collections[self.selected_idx])
+                return ("SWITCH_TO_FAVORITES_COLLECTION_SYNC", selected)
 
         return None
 
@@ -139,5 +143,5 @@ class CollectionsScreen:
                 progress = f"{self.selected_idx + 1} / {total}"
                 render_text(self.renderer, self.font, progress, 580, 40, (150, 150, 150), right=True)
 
-        footer_text = "L1/R1: Page | D-Pad: Move | A: View | B: Back"
+        footer_text = "X: Sync Favs | D-Pad: Move | A: View | B: Back"
         render_text(self.renderer, self.font, footer_text, 320, 440, (150, 150, 150), center=True)

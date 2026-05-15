@@ -61,7 +61,7 @@ Requires an authorization token configured inside standard settings menus. The a
 ### 🟡 Medium Feasibility
 * [x] **Intelligent Syncing**: Download only missing ROM components.
 * [ ] **Favorite Parity**: Push local favorites back to RomM.
-* [ ] **Screenshot Uploader**: Push capture assets directly up to metadata logs.
+* [x] **Screenshot Uploader**: Push capture assets directly up to metadata logs.
 * [ ] **BIOS Integrity Check**: Confirm local hash compliance routines.
 
 ### 🔴 Low / Complex Feasibility / Out of scope for now

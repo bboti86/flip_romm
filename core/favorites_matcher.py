@@ -34,43 +34,104 @@ class FavoritesMatcher:
         """Set the ROMs fetched from RomM API."""
         self.romm_roms = roms
 
+    def normalize(self, s):
+        """Standardize strings for fuzzy matching with unicode support."""
+        if not s: return ""
+        import re
+        import unicodedata
+        
+        # 1. Unicode normalization (convert ä to a, etc.)
+        s = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode('ascii')
+        
+        # 2. Handle common variations (ae -> a, etc. for some matches)
+        s = s.replace('ae', 'a').replace('oe', 'o').replace('ue', 'u')
+        
+        # 3. Remove common prefixes and suffixes
+        s = re.sub(r"^(Disney's|Marvel's|The|A|An)\s+", "", s, flags=re.IGNORECASE)
+        s = re.sub(r",\s+(The|A|An)$", "", s, flags=re.IGNORECASE)
+        
+        # 4. Remove region tags and brackets
+        s = re.sub(r'\s*[\(\[].*?[\)\]]', '', s)
+        
+        # 5. Remove ALL non-alphanumeric characters (keep only letters, numbers, and spaces)
+        s = re.sub(r'[^a-zA-Z0-9\s]', ' ', s)
+        
+        # 6. Lowercase and collapse whitespace
+        return " ".join(s.lower().split())
+
+    def get_local_zip_crc(self, file_path):
+        """Get the CRC of the first file in a ZIP without extracting."""
+        if not file_path or not file_path.lower().endswith('.zip'):
+            return None
+        import zipfile
+        try:
+            with zipfile.ZipFile(file_path, 'r') as z:
+                infos = z.infolist()
+                if infos:
+                    # Return CRC as hex string, lowercased
+                    return hex(infos[0].CRC & 0xFFFFFFFF)[2:].zfill(8).lower()
+        except Exception as e:
+            print(f"Error reading ZIP CRC for {file_path}: {e}")
+        return None
+
     def get_matches(self):
         """
-        Match local favorites against RomM roms.
-        Returns a list of dictionaries with matching status.
+        Match local favorites against RomM roms using name normalization and CRC.
         """
         results = []
         
-        # Create a lookup dictionary for RomM ROMs
-        # Try matching by name (case-insensitive)
-        romm_lookup = {}
+        # Create lookup dictionaries for RomM ROMs
+        romm_name_lookup = {}
+        romm_crc_lookup = {}
+        
         for rom in self.romm_roms:
+            # 1. Index by names
             if 'name' in rom and rom['name']:
-                name_key = rom['name'].lower().strip()
-                romm_lookup[name_key] = rom
+                romm_name_lookup[rom['name'].lower().strip()] = rom
+                romm_name_lookup[self.normalize(rom['name'])] = rom
             
-            # If the API returns files, we could also index by file name
+            # 2. Index by filenames
             if 'files' in rom and rom['files']:
                 for f in rom['files']:
                     if 'file_name' in f and f['file_name']:
-                        # Remove extension for matching
-                        basename = os.path.splitext(f['file_name'])[0].lower().strip()
-                        romm_lookup[basename] = rom
+                        basename = os.path.splitext(f['file_name'])[0]
+                        romm_name_lookup[basename.lower().strip()] = rom
+                        romm_name_lookup[self.normalize(basename)] = rom
+                    
+                    # 3. Index by CRC
+                    if 'crc_hash' in f and f['crc_hash']:
+                        crc = f['crc_hash'].lower().strip()
+                        romm_crc_lookup[crc] = rom
+            
+            # Global CRC if available
+            if 'crc_hash' in rom and rom['crc_hash']:
+                romm_crc_lookup[rom['crc_hash'].lower().strip()] = rom
                         
         for fav in self.local_favorites:
             display_name = fav.get('display_name', '')
+            rom_path = fav.get('rom_file_path', '')
             if not display_name:
                 continue
-                
-            match_key = display_name.lower().strip()
             
-            is_matched = match_key in romm_lookup
-            romm_rom = romm_lookup.get(match_key)
+            romm_rom = None
+            
+            # Strategy 1: CRC Matching (High precision, for ZIPs)
+            local_crc = self.get_local_zip_crc(rom_path)
+            if local_crc:
+                romm_rom = romm_crc_lookup.get(local_crc)
+            
+            # Strategy 2: Improved Name Normalization
+            if not romm_rom:
+                match_key_exact = display_name.lower().strip()
+                match_key_norm = self.normalize(display_name)
+                romm_rom = romm_name_lookup.get(match_key_exact) or romm_name_lookup.get(match_key_norm)
+            
+            is_matched = romm_rom is not None
             
             results.append({
                 'local_name': display_name,
                 'system': fav.get('game_system_name', ''),
-                'path': fav.get('rom_file_path', ''),
+                'path': rom_path,
                 'is_matched': is_matched,
                 'romm_id': romm_rom['id'] if romm_rom else None,
                 'romm_name': romm_rom['name'] if romm_rom else None

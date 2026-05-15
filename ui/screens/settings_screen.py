@@ -15,6 +15,7 @@ class SettingsScreen:
         self.fields = [
             {"label": "LOCAL FAVORITES ->", "key": "nav_local_favorites", "is_button": True},
             {"label": "COLLECTIONS ->", "key": "nav_collections", "is_button": True},
+            {"label": "SYNC SCREENSHOTS ->", "key": "nav_screenshot_sync", "is_button": True},
             {"label": "RESTORE FAVORITES", "key": "action_restore", "is_button": True},
             {"label": "EXIT", "key": "save", "is_button": True}
         ]
@@ -36,6 +37,8 @@ class SettingsScreen:
                 return "SWITCH_TO_COLLECTIONS"
             elif field["key"] == "nav_local_favorites":
                 return "SWITCH_TO_LOCAL_FAVORITES"
+            elif field["key"] == "nav_screenshot_sync":
+                return "SWITCH_TO_SCREENSHOT_SYNC"
             elif field["key"] == "action_restore":
                 from core.favorites_matcher import favorites_matcher
                 success, msg = favorites_matcher.restore_favorites_backup()

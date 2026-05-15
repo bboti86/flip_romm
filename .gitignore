@@ -22,12 +22,16 @@ dist/
 device_runtime.log
 device_runtime.log.*
 runtime.log
+cache/
+*.bak
 
 # Secret / Settings files (DO NOT COMMIT)
 settings.json
 config.json.user
 match_cache.json
 api_cache.json
+pyui-favorites.json
+screenshot_sync.json
 
 # OS files
 .DS_Store

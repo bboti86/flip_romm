@@ -17,6 +17,8 @@ from ui.screens.collections_screen import CollectionsScreen
 from ui.screens.collection_games_screen import CollectionGamesScreen
 from ui.screens.local_favorites_screen import LocalFavoritesScreen
 from ui.screens.sync_screen import SyncScreen
+from ui.screens.favorites_collection_sync_screen import FavoritesCollectionSyncScreen
+from ui.screens.screenshot_sync_screen import ScreenshotSyncScreen
 
 class Logger:
     def __init__(self, filename):
@@ -120,6 +122,12 @@ def main():
                     elif action == "SWITCH_TO_COLLECTION_GAMES":
                         logger.info(f"Switching to Collection Games: {data}")
                         current_screen = CollectionGamesScreen(renderer, font, data)
+                    elif action == "SWITCH_TO_FAVORITES_COLLECTION_SYNC":
+                        logger.info(f"Switching to Favorites Collection Sync: {data}")
+                        current_screen = FavoritesCollectionSyncScreen(renderer, font, data)
+                    elif action == "SWITCH_TO_SCREENSHOT_SYNC":
+                        logger.info("Switching to Screenshot Sync")
+                        current_screen = ScreenshotSyncScreen(renderer, font)
 
         if hasattr(current_screen, 'update'):
             current_screen.update(dt)
