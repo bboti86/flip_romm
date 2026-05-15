@@ -60,7 +60,7 @@ Requires an authorization token configured inside standard settings menus. The a
 
 ### 🟡 Medium Feasibility
 * [x] **Intelligent Syncing**: Download only missing ROM components.
-* [ ] **Favorite Parity**: Push local favorites back to RomM.
+* [x] **Favorite Parity**: Push local favorites back to RomM.
 * [x] **Screenshot Uploader**: Push capture assets directly up to metadata logs.
 * [ ] **BIOS Integrity Check**: Confirm local hash compliance routines.
 

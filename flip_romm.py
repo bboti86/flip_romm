@@ -19,6 +19,7 @@ from ui.screens.local_favorites_screen import LocalFavoritesScreen
 from ui.screens.sync_screen import SyncScreen
 from ui.screens.favorites_collection_sync_screen import FavoritesCollectionSyncScreen
 from ui.screens.screenshot_sync_screen import ScreenshotSyncScreen
+from ui.screens.favorite_push_status_screen import FavoritePushStatusScreen
 
 class Logger:
     def __init__(self, filename):
@@ -128,6 +129,14 @@ def main():
                     elif action == "SWITCH_TO_SCREENSHOT_SYNC":
                         logger.info("Switching to Screenshot Sync")
                         current_screen = ScreenshotSyncScreen(renderer, font)
+                    elif action == "SWITCH_TO_COLLECTION_PICKER":
+                        logger.info("Switching to Collection Picker for Favorites")
+                        def picker_callback(collection):
+                            return ("SWITCH_TO_FAVORITE_PUSH_STATUS", collection)
+                        current_screen = CollectionsScreen(renderer, font, callback=picker_callback, title="Select Destination")
+                    elif action == "SWITCH_TO_FAVORITE_PUSH_STATUS":
+                        logger.info(f"Switching to Favorite Push Status for: {data}")
+                        current_screen = FavoritePushStatusScreen(renderer, font, data)
 
         if hasattr(current_screen, 'update'):
             current_screen.update(dt)

@@ -67,71 +67,6 @@ class CollectionGamesScreen:
         
         threading.Thread(target=self._fetch_games, daemon=True).start()
 
-    def _check_local_exists(self, rom):
-        if not rom: return False
-        
-        possible_dirs = ["/mnt/SDCARD/Roms", "/media/sdcard0/Roms", "/media/sdcard1/Roms"]
-        
-        # Get the base slug from RomM
-        base_slug = self.platform_slugs.get(rom.get('platform_id', 0), '').lower()
-        if not base_slug:
-            # Fallback to platform_slug if available in the detailed meta
-            base_slug = rom.get('platform_slug', '').lower()
-            
-        if not base_slug: return False
-        
-        # Folders to check on the device
-        target_folders = self.slug_to_spruce.get(base_slug, [base_slug.upper(), base_slug])
-        
-        files_to_check = []
-        if rom.get('files'):
-            for f in rom['files']:
-                if f.get('file_name'): files_to_check.append(f['file_name'].lower())
-        
-        # Also check fs_name from RomM
-        fs_name = rom.get('fs_name')
-        if fs_name:
-            files_to_check.append(fs_name.lower())
-            
-        if not files_to_check:
-            return False
-            
-        for d in possible_dirs:
-            for sys_name in target_folders:
-                sys_dir = os.path.join(d, sys_name)
-                if os.path.exists(sys_dir):
-                    try:
-                        for root, dirs, files in os.walk(sys_dir):
-                            local_files = [f.lower() for f in files]
-                            # 1. Try exact filename matches
-                            for f_name in files_to_check:
-                                if f_name in local_files:
-                                    return True
-                            
-                            # 2. Try matching display name against filenames (ignoring extensions)
-                            rom_name = rom.get('name', '').lower()
-                            if rom_name:
-                                # Standardize names by removing punctuation and separators
-                                def normalize(s):
-                                    for char in ":!?-_.":
-                                        s = s.replace(char, " ")
-                                    return " ".join(s.split()) # Collapse multiple spaces and strip
-                                
-                                clean_rom_name = normalize(rom_name)
-                                for lf in local_files:
-                                    lf_no_ext = os.path.splitext(lf)[0]
-                                    clean_lf = normalize(lf_no_ext)
-                                    
-                                    if clean_rom_name == clean_lf:
-                                        return True
-                                    
-                                    # Also check if the RomM name is exactly the start of the file
-                                    if clean_lf.startswith(clean_rom_name):
-                                         if len(clean_rom_name) > 5:
-                                             return True
-                    except Exception as e:
-                        pass
-        return False
 
     def _check_local_exists(self, rom):
         if not rom: return False
@@ -238,6 +173,7 @@ class CollectionGamesScreen:
         filename_lower = filename.lower()
         possible_bases = ["/media/sdcard1/Roms", "/media/sdcard0/Roms", "/mnt/SDCARD/Roms"]
         
+        norm_filename = favorites_matcher.normalize(os.path.splitext(filename)[0])
         for base in possible_bases:
             if not os.path.exists(base): continue
             for sys_name in target_folders:
@@ -245,7 +181,13 @@ class CollectionGamesScreen:
                 if os.path.exists(sys_dir):
                     for root, _, files in os.walk(sys_dir):
                         for f in files:
+                            # 1. Exact match
                             if f.lower() == filename_lower:
+                                return base, target_folder, os.path.join(root, f)
+                            
+                            # 2. Fuzzy match (ignore punctuation/tags)
+                            f_no_ext = os.path.splitext(f)[0]
+                            if favorites_matcher.normalize(f_no_ext) == norm_filename:
                                 return base, target_folder, os.path.join(root, f)
         
         # 2. If not found, use default path logic

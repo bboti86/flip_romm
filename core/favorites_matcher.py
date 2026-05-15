@@ -197,4 +197,13 @@ class FavoritesMatcher:
         else:
             return False, "Failed to save favorites"
 
+    def get_matched_rom_ids(self):
+        """Return a unique list of RomM IDs for currently matched favorites."""
+        matches = self.get_matches()
+        rom_ids = []
+        for m in matches:
+            if m['is_matched'] and m['romm_id']:
+                rom_ids.append(m['romm_id'])
+        return list(set(rom_ids))
+
 favorites_matcher = FavoritesMatcher()

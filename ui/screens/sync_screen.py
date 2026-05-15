@@ -62,10 +62,7 @@ class SyncScreen:
         threading.Thread(target=self._prepare_sync, daemon=True).start()
 
     def normalize(self, s):
-        if not s: return ""
-        for char in ":!?-_.()[]":
-            s = s.replace(char, " ")
-        return " ".join(s.split()).lower()
+        return favorites_matcher.normalize(s)
 
     def _prepare_sync(self):
         try:

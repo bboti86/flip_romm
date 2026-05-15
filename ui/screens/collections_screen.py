@@ -5,7 +5,7 @@ import core.input
 from ui.components import render_text, render_text_shadow, draw_panel, draw_selector
 
 class CollectionsScreen:
-    def __init__(self, renderer, font, initial_idx=0):
+    def __init__(self, renderer, font, initial_idx=0, callback=None, title="RomM Collections"):
         self.renderer = renderer
         self.font = font
         self.collections = []
@@ -15,6 +15,8 @@ class CollectionsScreen:
         self.scroll_offset = max(0, self.selected_idx - 7)
         self.items_per_page = 8
         self.scroll_timer = 0.3
+        self.callback = callback
+        self.title = title
         
         # Start fetch thread
         threading.Thread(target=self._fetch_collections, daemon=True).start()
@@ -72,10 +74,13 @@ class CollectionsScreen:
         elif action == "ACCEPT":
             if self.collections:
                 selected = dict(self.collections[self.selected_idx])
-                selected['_list_index'] = self.selected_idx
-                return ("SWITCH_TO_COLLECTION_GAMES", selected)
+                if self.callback:
+                    return self.callback(selected)
+                else:
+                    selected['_list_index'] = self.selected_idx
+                    return ("SWITCH_TO_COLLECTION_GAMES", selected)
         elif action == "X_BUTTON":
-            if self.collections:
+            if self.collections and not self.callback:
                 selected = dict(self.collections[self.selected_idx])
                 return ("SWITCH_TO_FAVORITES_COLLECTION_SYNC", selected)
 
@@ -111,7 +116,7 @@ class CollectionsScreen:
             self.scroll_timer = 0.3
 
     def draw(self):
-        render_text_shadow(self.renderer, self.font, "RomM Collections", 320, 20, (0, 255, 150), center=True)
+        render_text_shadow(self.renderer, self.font, self.title, 320, 20, (0, 255, 150), center=True)
         
         if self.loading:
             render_text(self.renderer, self.font, "Fetching from RomM...", 320, 240, (200, 200, 200), center=True)
