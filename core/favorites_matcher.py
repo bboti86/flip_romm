@@ -9,6 +9,34 @@ class FavoritesMatcher:
     def __init__(self):
         self.local_favorites = []
         self.romm_roms = []
+        
+        self.slug_to_spruce = {
+            "nes": ["FC", "NES"],
+            "snes": ["SFC", "SNES"],
+            "gb": ["GB"],
+            "gbc": ["GBC"],
+            "gba": ["GBA"],
+            "genesis": ["MD", "GENESIS", "MEGADRIVE"],
+            "megadrive": ["MD", "GENESIS", "MEGADRIVE"],
+            "game-gear": ["GG", "GAMEGEAR"],
+            "gg": ["GG", "GAMEGEAR"],
+            "master-system": ["MS", "MASTERSYSTEM"],
+            "ms": ["MS"],
+            "n64": ["N64"],
+            "nintendo-64": ["N64"],
+            "ps1": ["PS", "PSX", "PS1"],
+            "psx": ["PS", "PSX", "PS1"],
+            "playstation": ["PS", "PSX", "PS1"],
+            "psp": ["PSP"],
+            "arcade": ["ARCADE", "MAME", "FBA", "NEOGEO", "FBNEO", "CPS1", "CPS2", "CPS3"],
+            "mame": ["ARCADE", "MAME", "FBA", "NEOGEO", "FBNEO", "CPS1", "CPS2", "CPS3"],
+            "pce": ["PCE", "TG16"],
+            "pcecd": ["PCECD"],
+            "segacd": ["SCD", "SEGACD"],
+            "scd": ["SCD", "SEGACD"],
+            "pico8": ["PICO8", "PICO-8"],
+            "nds": ["NDS"],
+        }
 
     def load_local_favorites(self):
         """Load favorites from SpruceOS."""
@@ -267,6 +295,26 @@ class FavoritesMatcher:
             return True, "Added to favorites"
         else:
             return False, "Failed to save favorites"
+
+    def get_save_paths(self, rom_file_path, system_name):
+        """Find the save and state files for a given ROM."""
+        if not rom_file_path: return None, []
+        
+        basename = os.path.splitext(os.path.basename(rom_file_path))[0]
+        
+        # SpruceOS Save location: /mnt/SDCARD/Saves/[System]/[Basename].srm
+        save_dir = os.path.join("/mnt/SDCARD/Saves", system_name)
+        save_file = os.path.join(save_dir, f"{basename}.srm")
+        
+        # SpruceOS States location: /mnt/SDCARD/States/[System]/[Basename].state*
+        state_dir = os.path.join("/mnt/SDCARD/States", system_name)
+        states = []
+        if os.path.exists(state_dir):
+            for f in os.listdir(state_dir):
+                if f.startswith(basename) and ".state" in f:
+                    states.append(os.path.join(state_dir, f))
+        
+        return save_file if os.path.exists(save_file) else None, states
 
     def get_matched_rom_ids(self):
         """Return a unique list of RomM IDs for currently matched favorites."""

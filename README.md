@@ -20,6 +20,9 @@ This is a self-contained, native SpruceOS application built with PySDL2 for the 
     *   **Download (X)**: Download a single missing game directly from the metadata view.
     *   **Sync All (START)**: Synchronize an entire collection with a single button press.
 *   **Remote Metadata Viewer**: View rich game details (descriptions, ratings, release info) with local existence tracking.
+*   **Save & State Push Sync**: 
+    *   Upload local save files (`.srm`) and save states to RomM with a single button press.
+    *   Identifies local ROMs missing from your RomM library and offers to upload them automatically.
 *   **Flexible Scanning**: Recursively searches across all SD card mount points (`/media/sdcard1`, `/media/sdcard0`, `/mnt/SDCARD`) and subfolders.
 
 ## Installation
@@ -65,7 +68,7 @@ Requires an authorization token configured inside standard settings menus. The a
 * [x] **Screenshot Uploader**: Push capture assets directly up to metadata logs.
 ### 🔴 Low / Complex Feasibility / Out of scope for now
 * [ ] **BIOS Integrity Check**: Confirm local hash compliance routines.
-* [ ] **Bi-directional Save Sync** & timestamped conflict handlers.
+* [x] **Bi-directional Save Sync**: Push local saves/states to RomM.
 * [ ] **True binary payloads** and persistent queue managers.
 * [ ] **Auto-Upload on Exit** via firmware wrapper scripts.
 * [ ] **Playback State Sync**: Log time played counts securely.

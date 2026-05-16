@@ -351,4 +351,72 @@ class RommAPI:
             print(f"Error uploading screenshot ({filename}): {e}")
             return None
 
+    def upload_save(self, rom_id, file_path):
+        """Upload a save file for a specific ROM."""
+        if not config.romm_url or not config.romm_api_key:
+            return None
+            
+        url = f"{config.romm_url.rstrip('/')}/api/roms/{rom_id}/saves"
+        filename = os.path.basename(file_path)
+        boundary = "FlipRommSaveBoundary" + os.urandom(8).hex()
+        
+        try:
+            with open(file_path, 'rb') as f:
+                file_content = f.read()
+            
+            header = (
+                f"--{boundary}\r\n"
+                f"Content-Disposition: form-data; name=\"saveFile\"; filename=\"{filename}\"\r\n"
+                f"Content-Type: application/octet-stream\r\n\r\n"
+            ).encode('utf-8')
+            footer = f"\r\n--{boundary}--\r\n".encode('utf-8')
+            body = header + file_content + footer
+            
+            headers = {
+                "Authorization": f"Bearer {config.romm_api_key}",
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+                "Content-Length": str(len(body))
+            }
+            
+            req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=300) as response:
+                return json.loads(response.read().decode('utf-8'))
+        except Exception as e:
+            print(f"Error uploading save ({filename}): {e}")
+            return None
+
+    def upload_state(self, rom_id, file_path):
+        """Upload a save state for a specific ROM."""
+        if not config.romm_url or not config.romm_api_key:
+            return None
+            
+        url = f"{config.romm_url.rstrip('/')}/api/roms/{rom_id}/states"
+        filename = os.path.basename(file_path)
+        boundary = "FlipRommStateBoundary" + os.urandom(8).hex()
+        
+        try:
+            with open(file_path, 'rb') as f:
+                file_content = f.read()
+            
+            header = (
+                f"--{boundary}\r\n"
+                f"Content-Disposition: form-data; name=\"stateFile\"; filename=\"{filename}\"\r\n"
+                f"Content-Type: application/octet-stream\r\n\r\n"
+            ).encode('utf-8')
+            footer = f"\r\n--{boundary}--\r\n".encode('utf-8')
+            body = header + file_content + footer
+            
+            headers = {
+                "Authorization": f"Bearer {config.romm_api_key}",
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+                "Content-Length": str(len(body))
+            }
+            
+            req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=300) as response:
+                return json.loads(response.read().decode('utf-8'))
+        except Exception as e:
+            print(f"Error uploading state ({filename}): {e}")
+            return None
+
 romm_api = RommAPI()

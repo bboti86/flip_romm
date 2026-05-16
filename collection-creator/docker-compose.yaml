@@ -1,0 +1,9 @@
+services:
+  romm-collection-creator:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - ROMM_URL=${ROMM_URL:-http://localhost:8080}
+      - ROMM_API_KEY=${ROMM_API_KEY}
+    restart: unless-stopped

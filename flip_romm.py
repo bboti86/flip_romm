@@ -21,6 +21,7 @@ from ui.screens.favorites_collection_sync_screen import FavoritesCollectionSyncS
 from ui.screens.screenshot_sync_screen import ScreenshotSyncScreen
 from ui.screens.favorite_push_status_screen import FavoritePushStatusScreen
 from ui.screens.collection_download_screen import CollectionDownloadScreen
+from ui.screens.push_sync_screen import PushSyncScreen
 
 class Logger:
     def __init__(self, filename):
@@ -141,6 +142,9 @@ def main():
                     elif action == "SWITCH_TO_COLLECTION_DOWNLOAD":
                         logger.info(f"Switching to Collection Download: {data}")
                         current_screen = CollectionDownloadScreen(renderer, font, data)
+                    elif action == "SWITCH_TO_PUSH_SYNC":
+                        logger.info("Switching to Push Sync")
+                        current_screen = PushSyncScreen(renderer, font)
 
         if hasattr(current_screen, 'update'):
             current_screen.update(dt)
