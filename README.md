@@ -2,6 +2,8 @@
 
 This is a self-contained, native SpruceOS application built with PySDL2 for the Miyoo Flip and similar retro gaming handhelds. It integrates local device favorites with a self-hosted **RomM** instance.
 
+Looking for the companion web app to easily generate RomM collections from text? Check out the [RomM Collection Creator](./collection-creator/README.md).
+
 ## Key Features
 
 *   **Intelligent Bulk Sync**: 
