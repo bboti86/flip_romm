@@ -83,6 +83,10 @@ class CollectionsScreen:
             if self.collections and not self.callback:
                 selected = dict(self.collections[self.selected_idx])
                 return ("SWITCH_TO_FAVORITES_COLLECTION_SYNC", selected)
+        elif action == "Y_BUTTON":
+            if self.collections and not self.callback:
+                selected = dict(self.collections[self.selected_idx])
+                return ("SWITCH_TO_COLLECTION_DOWNLOAD", selected)
 
         return None
 
@@ -148,5 +152,5 @@ class CollectionsScreen:
                 progress = f"{self.selected_idx + 1} / {total}"
                 render_text(self.renderer, self.font, progress, 580, 40, (150, 150, 150), right=True)
 
-        footer_text = "X: Sync Favs | D-Pad: Move | A: View | B: Back"
+        footer_text = "Y: Download to Device | X: Sync Favs | A: View | B: Back"
         render_text(self.renderer, self.font, footer_text, 320, 440, (150, 150, 150), center=True)

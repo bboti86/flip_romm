@@ -3,6 +3,7 @@ import os
 import shutil
 
 FAVORITES_FILE = "/mnt/SDCARD/Saves/pyui-favorites.json" # Default location in SpruceOS
+COLLECTIONS_FILE = "/media/sdcard0/Collections/collections.json"
 
 class FavoritesMatcher:
     def __init__(self):
@@ -160,6 +161,76 @@ class FavoritesMatcher:
         except Exception as e:
             print(f"Error saving favorites: {e}")
             return False
+            
+    def load_collections(self):
+        """Load SpruceOS collections."""
+        file_path = COLLECTIONS_FILE
+        if not os.path.exists(file_path):
+            # Fallback for PC testing: check if absolute path directory exists
+            # If not, check for local file in current directory
+            dir_name = os.path.dirname(file_path)
+            if dir_name and not os.path.exists(dir_name):
+                file_path = os.path.basename(file_path)
+            elif not dir_name:
+                pass # Already a relative path
+        
+        if not os.path.exists(file_path):
+            return []
+            
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error loading collections: {e}")
+            return []
+
+    def save_collections(self, collections):
+        """Save SpruceOS collections."""
+        file_path = COLLECTIONS_FILE
+        dir_name = os.path.dirname(file_path)
+        if dir_name and not os.path.exists(dir_name):
+            file_path = os.path.basename(file_path)
+            
+        try:
+            # Create backup
+            if os.path.exists(file_path):
+                shutil.copy2(file_path, file_path + ".bak")
+                
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(collections, f, indent=4)
+            return True
+        except Exception as e:
+            print(f"Error saving collections: {e}")
+            return False
+
+    def add_to_collection(self, collection_name, rom_file_path, system_name):
+        """Add a game to a specific SpruceOS collection."""
+        collections = self.load_collections()
+        
+        target_coll = None
+        for coll in collections:
+            if coll.get('collection_name') == collection_name:
+                target_coll = coll
+                break
+        
+        if not target_coll:
+            target_coll = {
+                "collection_name": collection_name,
+                "game_list": []
+            }
+            collections.append(target_coll)
+            
+        # Check if already in list
+        for game in target_coll['game_list']:
+            if game.get('rom_file_path') == rom_file_path:
+                return True # Already exists
+                
+        target_coll['game_list'].append({
+            "rom_file_path": rom_file_path,
+            "game_system_name": system_name
+        })
+        
+        return self.save_collections(collections)
             
     def restore_favorites_backup(self):
         """Restore favorites from the backup file."""

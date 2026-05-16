@@ -382,7 +382,7 @@ class CollectionGamesScreen:
                 self.scroll_offset = self.selected_idx - self.items_per_page + 1
             self.selected_is_local = self._check_local_exists(self.roms[self.selected_idx])
         elif action == "START":
-            return ("SWITCH_TO_SYNC", self.collection)
+            return ("SWITCH_TO_COLLECTION_DOWNLOAD", self.collection)
         return None
 
     def update(self, dt):
@@ -477,7 +477,7 @@ class CollectionGamesScreen:
         is_local = self.local_exists if self.show_metadata else self.selected_is_local
         fav_prompt = " | Y: Favorite" if is_local else ""
         
-        footer_text = f"A: Info{fav_prompt} | START: Download All | B: Back"
+        footer_text = f"A: Info{fav_prompt} | START: Download to Device | B: Back"
         if self.show_metadata:
             if self.downloading:
                 footer_text = "Downloading... please wait"

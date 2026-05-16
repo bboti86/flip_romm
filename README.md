@@ -8,8 +8,9 @@ This is a self-contained, native SpruceOS application built with PySDL2 for the 
     *   Automatically matches RomM collection items with local files using robust name normalization (stripping tags like `(USA)`, `[!]`, etc.).
     *   Identifies missing games and provides a total download size estimate.
     *   Sequentially downloads missing titles with real-time progress tracking.
-*   **Favorite Synchronization**: 
+*   **Favorite & Collection Synchronization**: 
     *   Automatically adds matched local games and newly downloaded games to the SpruceOS Favorites list (`pyui-favorites.json`).
+    *   **Spruce OS Collection Support**: Automatically generates or updates Spruce OS collection files in `/media/sdcard0/Collections/collections.json`, making your RomM collections instantly available in the device's main menu.
     *   Uses path-based verification for 100% reliable favorite detection in the app.
 *   **Backup & Recovery**:
     *   **Automatic Backups**: Every time the app writes to your favorites list, it creates a `pyui-favorites.json.bak` copy of the previous state.
@@ -36,9 +37,9 @@ This is a self-contained, native SpruceOS application built with PySDL2 for the 
 | **D-Pad** | Navigate lists |
 | **A** | Select / Open metadata view |
 | **B** | Back / Cancel |
-| **X** | Download single game (from metadata view) |
-| **Y** | Toggle Favorite (if game is local) |
-| **START** | Trigger "Download All" Sync for current collection |
+| **X** | Download single game (from metadata view) / Sync favorites to RomM (from collection list) |
+| **Y** | Toggle Favorite (if game is local) / **Download Collection to Device** (from collection list) |
+| **START** | Trigger "Download to Device" Sync for current collection (from games list) |
 | **L2 / R2** | Page Up / Down in lists |
 
 ## Security Considerations
@@ -56,7 +57,7 @@ Requires an authorization token configured inside standard settings menus. The a
 * [x] Generate a tailored application icon.
 * [x] **Remote Metadata Viewer**: Show ratings/descriptions on game list.
 * [x] **Single game sync** capabilities.
-* [x] **Collection-Based Downloads**: Bulk download targeted playlists.
+* [x] **Collection-Based Downloads**: Bulk download targeted playlists and generate Spruce OS collections.
 
 ### 🟡 Medium Feasibility
 * [x] **Intelligent Syncing**: Download only missing ROM components.

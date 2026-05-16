@@ -1,0 +1,24 @@
+[
+    {
+        "collection_name": "RPG Classics",
+        "game_list": [
+            {
+                "rom_file_path": "/media/sdcard1/Roms/SFC/Chrono Trigger.7z",
+                "game_system_name": "SFC"
+            },
+            {
+                "rom_file_path": "/media/sdcard1/Roms/GBA/Fire Emblem.zip",
+                "game_system_name": "GBA"
+            }
+        ]
+    },
+    {
+        "collection_name": "Action",
+        "game_list": [
+            {
+                "rom_file_path": "/media/sdcard1/Roms/GBA/Metroid Fusion.zip",
+                "game_system_name": "GBA"
+            }
+        ]
+    }
+]
